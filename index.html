@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML伪装系统 - 静态版本</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        
+        .header .description {
+            font-size: 1em;
+            opacity: 0.8;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .main-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            margin-bottom: 30px;
+        }
+        
+        .upload-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            margin: 20px 0;
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: linear-gradient(45deg, #e9ecef, #dee2e6);
+        }
+        
+        .upload-area.dragover {
+            border-color: #28a745;
+            background: linear-gradient(45deg, #d4edda, #c3e6cb);
+        }
+        
+        .upload-icon {
+            font-size: 4em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .upload-text {
+            font-size: 1.2em;
+            color: #495057;
+            margin-bottom: 15px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-success {
+            background: linear-gradient(45deg, #28a745, #20c997);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #6c757d, #495057);
+        }
+        
+        .result-section {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .result-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .result-success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .result-error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        .url-display {
+            background: #f8f9fa;
+            border: 2px dashed #6c757d;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            word-break: break-all;
+            font-size: 0.9em;
+        }
+        
+        .file-list {
+            margin-top: 30px;
+        }
+        
+        .file-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .file-info {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .file-name {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+        
+        .file-meta {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .demo-section {
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .feature-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .feature-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+        
+        .feature-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .feature-desc {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        
+        .copy-btn:hover {
+            background: #218838;
+        }
+        
+        .static-notice {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+        
+        .static-notice h3 {
+            margin-bottom: 10px;
+            color: #b45309;
+        }
+        
+        .demo-files {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .demo-file-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .demo-file-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .demo-file-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        
+        .demo-file-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .demo-file-desc {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 HTML伪装系统</h1>
+            <p class="subtitle">静态版本 - GitHub Pages演示</p>
+            <p class="description">
+                本项目演示了HTML伪装技术的概念和实现方式。
+                由于GitHub Pages的静态特性，这里提供预制的演示文件来展示效果。
+            </p>
+        </div>
+        
+        <div class="main-card">
+            <div class="static-notice">
+                <h3>📌 静态版本说明</h3>
+                <p>
+                    由于GitHub Pages只支持静态文件托管，无法运行后端服务，因此此版本提供了预制的演示文件来展示HTML伪装技术的效果。
+                    在实际应用中，您需要部署带有后端服务的完整版本才能实现动态的文件上传和URL生成功能。
+                </p>
+            </div>
+            
+            <div class="upload-section">
+                <h2>🎯 演示文件</h2>
+                <p style="margin: 15px 0; color: #6c757d;">
+                    以下是预制的演示文件，展示了HTML伪装技术的效果
+                </p>
+                
+                <div class="demo-files">
+                    <div class="demo-file-card">
+                        <div class="demo-file-icon">🌟</div>
+                        <div class="demo-file-title">基础演示页面</div>
+                        <div class="demo-file-desc">
+                            一个简单的HTML页面，展示了基本的伪装效果
+                        </div>
+                        <div class="url-display">
+                            <a href="demo1.jpg" target="_blank">demo1.jpg</a>
+                            <button class="copy-btn" onclick="copyToClipboard(window.location.origin + '/jpg-web-html/demo1.jpg')">复制链接</button>
+                        </div>
+                        <a href="demo1.jpg" target="_blank" class="btn btn-success">
+                            🌐 访问伪装链接
+                        </a>
+                    </div>
+                    
+                    <div class="demo-file-card">
+                        <div class="demo-file-icon">⚡</div>
+                        <div class="demo-file-title">Clash配置页面</div>
+                        <div class="demo-file-desc">
+                            基于Base64编码的Clash配置信息展示页面
+                        </div>
+                        <div class="url-display">
+                            <a href="clash-config.jpg" target="_blank">clash-config.jpg</a>
+                            <button class="copy-btn" onclick="copyToClipboard(window.location.origin + '/jpg-web-html/clash-config.jpg')">复制链接</button>
+                        </div>
+                        <a href="clash-config.jpg" target="_blank" class="btn btn-success">
+                            🌐 访问伪装链接
+                        </a>
+                    </div>
+                    
+                    <div class="demo-file-card">
+                        <div class="demo-file-icon">🎨</div>
+                        <div class="demo-file-title">样式展示页面</div>
+                        <div class="demo-file-desc">
+                            包含丰富CSS样式和动画效果的展示页面
+                        </div>
+                        <div class="url-display">
+                            <a href="styled-demo.jpg" target="_blank">styled-demo.jpg</a>
+                            <button class="copy-btn" onclick="copyToClipboard(window.location.origin + '/jpg-web-html/styled-demo.jpg')">复制链接</button>
+                        </div>
+                        <a href="styled-demo.jpg" target="_blank" class="btn btn-success">
+                            🌐 访问伪装链接
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-card">
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">🎭</div>
+                    <div class="feature-title">URL伪装</div>
+                    <div class="feature-desc">文件名以.jpg结尾，看起来像图片链接</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <div class="feature-title">HTML渲染</div>
+                    <div class="feature-desc">浏览器访问时渲染为完整的HTML页面</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <div class="feature-title">响应式设计</div>
+                    <div class="feature-desc">支持各种设备和屏幕尺寸</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <div class="feature-title">静态托管</div>
+                    <div class="feature-desc">可部署在GitHub Pages等静态托管服务</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-card">
+            <h3>🔧 技术实现</h3>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <h4 style="color: #495057; margin-bottom: 15px;">静态版本实现方式：</h4>
+                <ul style="color: #6c757d; line-height: 1.8; padding-left: 20px;">
+                    <li><strong>文件重命名：</strong>将HTML文件重命名为.jpg扩展名</li>
+                    <li><strong>MIME类型：</strong>Web服务器根据文件内容而非扩展名确定MIME类型</li>
+                    <li><strong>浏览器解析：</strong>浏览器检测到HTML内容后自动渲染为网页</li>
+                    <li><strong>GitHub Pages：</strong>利用GitHub Pages的静态文件托管能力</li>
+                </ul>
+            </div>
+            
+            <div style="background: #e8f5e8; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <h4 style="color: #155724; margin-bottom: 15px;">完整版本功能：</h4>
+                <ul style="color: #155724; line-height: 1.8; padding-left: 20px;">
+                    <li><strong>动态上传：</strong>支持用户实时上传HTML文件</li>
+                    <li><strong>URL生成：</strong>自动为每个文件生成唯一的伪装URL</li>
+                    <li><strong>访问统计：</strong>记录每个伪装URL的访问次数</li>
+                    <li><strong>内容处理：</strong>自动处理Base64编码和普通HTML内容</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="main-card">
+            <h3>📚 项目信息</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0;">
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                    <strong>🏠 项目主页</strong><br>
+                    <a href="https://github.com/username/jpg-web-html" target="_blank" style="color: #667eea;">GitHub仓库</a>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                    <strong>🌐 在线演示</strong><br>
+                    <a href="https://username.github.io/jpg-web-html" target="_blank" style="color: #667eea;">GitHub Pages</a>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                    <strong>📖 技术栈</strong><br>
+                    <span style="color: #6c757d;">HTML5 + CSS3 + JavaScript</span>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                    <strong>📄 许可证</strong><br>
+                    <span style="color: #6c757d;">MIT License</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 复制到剪贴板
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                // 临时显示复制成功
+                event.target.textContent = '已复制';
+                event.target.style.background = '#28a745';
+                setTimeout(() => {
+                    event.target.textContent = '复制链接';
+                    event.target.style.background = '#28a745';
+                }, 2000);
+            } catch (err) {
+                // 降级方案
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                event.target.textContent = '已复制';
+                setTimeout(() => {
+                    event.target.textContent = '复制链接';
+                }, 2000);
+            }
+        }
+        
+        // 页面加载动画
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.demo-file-card, .feature-card');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry, index) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => {
+                            entry.target.style.opacity = '1';
+                            entry.target.style.transform = 'translateY(0)';
+                        }, index * 100);
+                    }
+                });
+            });
+            
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'all 0.5s ease';
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>
